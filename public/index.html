@@ -28,22 +28,11 @@
           >
           <button type="button" id="toggle-key" class="btn-secondary" aria-label="Show API key">Show</button>
         </div>
-        <p class="hint" id="key-hint">Your key is sent directly to Hightouch and is never stored or logged.</p>
-      </section>
-
-      <section class="card" id="proxy-section" hidden>
-        <label for="proxy-url">Proxy URL</label>
-        <input
-          type="url"
-          id="proxy-url"
-          name="proxy-url"
-          placeholder="https://your-proxy.example.com/api/update-syncs"
-          spellcheck="false"
-        >
-        <p class="hint">Required on GitHub Pages to bypass CORS. Use a deployed proxy URL from your team, or run locally with <code>npm start</code>.</p>
+        <p class="hint">Your key is sent only to this local server and forwarded to Hightouch. It is never stored or logged.</p>
       </section>
 
       <section class="card">
+        <label for="sync-ids">Sync IDs</label>
         <textarea
           id="sync-ids"
           name="sync-ids"

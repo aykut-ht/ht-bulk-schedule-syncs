@@ -1,8 +1,0 @@
-services:
-  - type: web
-    name: ht-bulk-schedule-syncs
-    runtime: node
-    plan: free
-    buildCommand: npm install
-    startCommand: node server.js
-    healthCheckPath: /

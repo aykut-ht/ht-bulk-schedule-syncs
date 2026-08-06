@@ -26,7 +26,7 @@ body {
 }
 
 .container {
-  max-width: 720px;
+  max-width: 640px;
   margin: 0 auto;
   padding: 2.5rem 1.25rem 4rem;
 }
@@ -100,12 +100,10 @@ textarea {
   flex: 1;
 }
 
-.hint code {
-  font-family: ui-monospace, "SF Mono", Menlo, monospace;
-  font-size: 0.85em;
-  background: var(--bg);
-  padding: 0.1em 0.35em;
-  border-radius: 4px;
+.hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.8rem;
+  color: var(--muted);
 }
 
 .actions {
@@ -183,19 +181,13 @@ button {
 
 .result-item {
   display: flex;
-  flex-direction: column;
+  align-items: flex-start;
   gap: 0.6rem;
-  padding: 0.75rem;
+  padding: 0.6rem 0.75rem;
   border-radius: 8px;
   background: var(--bg);
   font-size: 0.875rem;
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
-}
-
-.result-summary {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.6rem;
 }
 
 .result-item.success { border-left: 3px solid var(--success); }
@@ -209,61 +201,4 @@ button {
 .result-item .detail {
   color: var(--muted);
   word-break: break-word;
-}
-
-.api-log {
-  margin-left: 5.1rem;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface);
-  font-family: var(--font);
-}
-
-.api-log summary {
-  cursor: pointer;
-  padding: 0.45rem 0.65rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--muted);
-  user-select: none;
-}
-
-.api-log summary:hover {
-  color: var(--text);
-}
-
-.api-log-body {
-  padding: 0 0.65rem 0.65rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-}
-
-.log-block {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.log-label {
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.log-pre {
-  margin: 0;
-  padding: 0.65rem 0.75rem;
-  border-radius: 6px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  font-family: ui-monospace, "SF Mono", Menlo, monospace;
-  font-size: 0.75rem;
-  line-height: 1.45;
-  overflow-x: auto;
-  white-space: pre-wrap;
-  word-break: break-word;
-  color: var(--text);
 }

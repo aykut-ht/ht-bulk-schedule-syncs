@@ -16,31 +16,6 @@ const frequencySelect = document.getElementById("frequency");
 const submitBtn = document.getElementById("submit-btn");
 const toggleKeyBtn = document.getElementById("toggle-key");
 const resultsSection = document.getElementById("results");
-const keyHint = document.getElementById("key-hint");
-const proxySection = document.getElementById("proxy-section");
-const proxyUrlInput = document.getElementById("proxy-url");
-
-const useLocalProxy =
-  location.hostname === "localhost" || location.hostname === "127.0.0.1";
-
-const DEFAULT_PROXY_URL = "https://ht-bulk-schedule-syncs.vercel.app/api/update-syncs";
-
-if (useLocalProxy) {
-  keyHint.textContent =
-    "Your key is sent only to this local server and forwarded to Hightouch. It is never stored or logged.";
-} else {
-  proxySection.hidden = false;
-  proxyUrlInput.value = DEFAULT_PROXY_URL;
-  keyHint.textContent =
-    "Your key is forwarded through the proxy URL below to Hightouch. It is never stored or logged.";
-}
-
-function getProxyUrl() {
-  if (useLocalProxy) return "/api/update-syncs";
-  const url = proxyUrlInput.value.trim().replace(/\/$/, "");
-  if (!url) throw new Error("Please enter a proxy URL.");
-  return url;
-}
 
 toggleKeyBtn.addEventListener("click", () => {
   const isPassword = apiKeyInput.type === "password";
@@ -58,78 +33,17 @@ function parseSyncIds(text) {
   )];
 }
 
-async function updateSyncsViaProxy(syncIds, schedule, apiKey) {
-  const response = await fetch(getProxyUrl(), {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({ syncIds, schedule }),
-  });
-
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.error || "Request failed");
-  }
-  return data.results;
-}
-
-function formatJson(value) {
-  return JSON.stringify(value, null, 2);
-}
-
-function renderLogBlock(label, value) {
-  return `
-    <div class="log-block">
-      <div class="log-label">${escapeHtml(label)}</div>
-      <pre class="log-pre">${escapeHtml(formatJson(value))}</pre>
-    </div>
-  `;
-}
-
-function renderApiLog(log, openByDefault) {
-  if (!log) return "";
-
-  const parts = [renderLogBlock("Request", log.request)];
-  if (log.response) {
-    parts.push(renderLogBlock("Response", log.response));
-  }
-  if (log.error) {
-    parts.push(renderLogBlock("Error", log.error));
-  }
-
-  return `
-    <details class="api-log" ${openByDefault ? "open" : ""}>
-      <summary>API log</summary>
-      <div class="api-log-body">${parts.join("")}</div>
-    </details>
-  `;
-}
-
 function renderResults(results) {
   const succeeded = results.filter((r) => r.ok).length;
   const failed = results.length - succeeded;
-  const hasFailures = failed > 0;
 
   const items = results
     .map((r) => {
-      const statusClass = r.ok ? "success" : "error";
-      const statusLabel = r.ok ? "OK" : "Failed";
-      let summary = `Sync ${r.syncId}`;
-      if (r.ok && r.slug) summary += ` (${r.slug})`;
-      if (!r.ok && r.error) summary += `<span class="detail"> — ${escapeHtml(r.error)}</span>`;
-      if (!r.ok && r.status) summary += `<span class="detail"> [HTTP ${r.status}]</span>`;
-
-      return `
-        <li class="result-item ${statusClass}">
-          <div class="result-summary">
-            <span class="status">${statusLabel}</span>
-            <span>${summary}</span>
-          </div>
-          ${renderApiLog(r.log, !r.ok && hasFailures)}
-        </li>
-      `;
+      if (r.ok) {
+        const slug = r.slug ? ` (${r.slug})` : "";
+        return `<li class="result-item success"><span class="status">OK</span><span>Sync ${r.syncId}${slug}</span></li>`;
+      }
+      return `<li class="result-item error"><span class="status">Failed</span><span>Sync ${r.syncId}<span class="detail"> — ${escapeHtml(r.error)}</span></span></li>`;
     })
     .join("");
 
@@ -171,8 +85,22 @@ form.addEventListener("submit", async (e) => {
   resultsSection.classList.add("hidden");
 
   try {
-    const results = await updateSyncsViaProxy(syncIds, schedule, apiKey);
-    renderResults(results);
+    const response = await fetch("/api/update-syncs", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({ syncIds, schedule }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Request failed");
+    }
+
+    renderResults(data.results);
   } catch (err) {
     resultsSection.innerHTML = `<h2>Error</h2><p class="summary fail">${escapeHtml(err.message)}</p>`;
     resultsSection.classList.remove("hidden");
