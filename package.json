@@ -1,0 +1,12 @@
+{
+  "name": "bulk-schedule-syncs",
+  "version": "1.0.0",
+  "description": "Bulk update Hightouch sync schedules",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

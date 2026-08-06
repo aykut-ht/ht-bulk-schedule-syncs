@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bulk Schedule Syncs — Hightouch</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>Bulk Schedule Syncs</h1>
+      <p class="subtitle">Update the schedule for multiple Hightouch syncs at once.</p>
+    </header>
+
+    <form id="update-form" autocomplete="off">
+      <section class="card">
+        <label for="api-key">API Key</label>
+        <div class="input-row">
+          <input
+            type="password"
+            id="api-key"
+            name="api-key"
+            placeholder="Bearer token from Hightouch Settings → API keys"
+            required
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <button type="button" id="toggle-key" class="btn-secondary" aria-label="Show API key">Show</button>
+        </div>
+        <p class="hint">Your key is sent only to this local server and forwarded to Hightouch. It is never stored or logged.</p>
+      </section>
+
+      <section class="card">
+        <label for="sync-ids">Sync IDs</label>
+        <textarea
+          id="sync-ids"
+          name="sync-ids"
+          rows="6"
+          placeholder="Enter one sync ID per line, or comma-separated&#10;12345&#10;67890"
+          required
+        ></textarea>
+        <p class="hint">Find sync IDs in the Hightouch URL when viewing a sync, or via the List Syncs API.</p>
+      </section>
+
+      <section class="card">
+        <label for="frequency">Schedule frequency</label>
+        <select id="frequency" name="frequency" required>
+          <option value="manual">Manual (no automatic schedule)</option>
+          <option value="15m">Every 15 minutes</option>
+          <option value="30m">Every 30 minutes</option>
+          <option value="1h">Every 1 hour</option>
+          <option value="6h">Every 6 hours</option>
+          <option value="12h">Every 12 hours</option>
+          <option value="1d" selected>Every 1 day</option>
+          <option value="1w">Every 1 week</option>
+        </select>
+      </section>
+
+      <div class="actions">
+        <button type="submit" id="submit-btn" class="btn-primary">Update schedules</button>
+      </div>
+    </form>
+
+    <section id="results" class="results hidden" aria-live="polite"></section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
