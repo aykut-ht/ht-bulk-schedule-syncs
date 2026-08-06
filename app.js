@@ -1,5 +1,3 @@
-const HIGHTOUCH_BASE = "https://api.hightouch.com/api/v1";
-
 const SCHEDULES = {
   manual: null,
   "15m": { type: "interval", schedule: { interval: { unit: "minute", quantity: 15 } } },
@@ -23,9 +21,16 @@ const keyHint = document.getElementById("key-hint");
 const useLocalProxy =
   location.hostname === "localhost" || location.hostname === "127.0.0.1";
 
+const PROXY_URL = useLocalProxy
+  ? "/api/update-syncs"
+  : "https://ht-bulk-schedule-syncs.vercel.app/api/update-syncs";
+
 if (useLocalProxy) {
   keyHint.textContent =
     "Your key is sent only to this local server and forwarded to Hightouch. It is never stored or logged.";
+} else {
+  keyHint.textContent =
+    "Your key is forwarded through a proxy to Hightouch. It is never stored or logged.";
 }
 
 toggleKeyBtn.addEventListener("click", () => {
@@ -44,99 +49,8 @@ function parseSyncIds(text) {
   )];
 }
 
-function buildRequestLog(syncId, schedule) {
-  return {
-    method: "PATCH",
-    url: `${HIGHTOUCH_BASE}/syncs/${syncId}`,
-    headers: {
-      Authorization: "Bearer [REDACTED]",
-      "Content-Type": "application/json",
-    },
-    body: { schedule },
-  };
-}
-
-function serializeError(err) {
-  const details = { message: err.message };
-  if (err.cause) {
-    details.cause = err.cause.message || String(err.cause);
-    if (err.cause.code) details.code = err.cause.code;
-  }
-  return details;
-}
-
-async function updateSyncDirect(syncId, schedule, apiKey) {
-  const requestLog = buildRequestLog(syncId, schedule);
-
-  if (!/^\d+$/.test(syncId)) {
-    return {
-      syncId,
-      ok: false,
-      error: "Invalid sync ID",
-      log: { request: requestLog, response: null, error: { message: "Invalid sync ID" } },
-    };
-  }
-
-  try {
-    const response = await fetch(`${HIGHTOUCH_BASE}/syncs/${syncId}`, {
-      method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ schedule }),
-    });
-
-    const text = await response.text();
-    let body;
-    try {
-      body = text ? JSON.parse(text) : null;
-    } catch {
-      body = text;
-    }
-
-    const responseLog = {
-      status: response.status,
-      statusText: response.statusText,
-      headers: {
-        "content-type": response.headers.get("content-type"),
-      },
-      body,
-    };
-
-    if (!response.ok) {
-      const message =
-        typeof body === "object" && body !== null
-          ? body.message || body.details || JSON.stringify(body)
-          : String(body);
-      return {
-        syncId,
-        ok: false,
-        status: response.status,
-        error: message,
-        log: { request: requestLog, response: responseLog },
-      };
-    }
-
-    return {
-      syncId,
-      ok: true,
-      status: response.status,
-      slug: body?.slug,
-      log: { request: requestLog, response: responseLog },
-    };
-  } catch (err) {
-    return {
-      syncId,
-      ok: false,
-      error: err.message,
-      log: { request: requestLog, response: null, error: serializeError(err) },
-    };
-  }
-}
-
 async function updateSyncsViaProxy(syncIds, schedule, apiKey) {
-  const response = await fetch("/api/update-syncs", {
+  const response = await fetch(PROXY_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -150,18 +64,6 @@ async function updateSyncsViaProxy(syncIds, schedule, apiKey) {
     throw new Error(data.error || "Request failed");
   }
   return data.results;
-}
-
-async function updateSyncs(syncIds, schedule, apiKey) {
-  if (useLocalProxy) {
-    return updateSyncsViaProxy(syncIds, schedule, apiKey);
-  }
-
-  const results = [];
-  for (const rawId of syncIds) {
-    results.push(await updateSyncDirect(String(rawId).trim(), schedule, apiKey));
-  }
-  return results;
 }
 
 function formatJson(value) {
@@ -260,7 +162,7 @@ form.addEventListener("submit", async (e) => {
   resultsSection.classList.add("hidden");
 
   try {
-    const results = await updateSyncs(syncIds, schedule, apiKey);
+    const results = await updateSyncsViaProxy(syncIds, schedule, apiKey);
     renderResults(results);
   } catch (err) {
     resultsSection.innerHTML = `<h2>Error</h2><p class="summary fail">${escapeHtml(err.message)}</p>`;
