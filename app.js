@@ -17,20 +17,29 @@ const submitBtn = document.getElementById("submit-btn");
 const toggleKeyBtn = document.getElementById("toggle-key");
 const resultsSection = document.getElementById("results");
 const keyHint = document.getElementById("key-hint");
+const proxySection = document.getElementById("proxy-section");
+const proxyUrlInput = document.getElementById("proxy-url");
 
 const useLocalProxy =
   location.hostname === "localhost" || location.hostname === "127.0.0.1";
 
-const PROXY_URL = useLocalProxy
-  ? "/api/update-syncs"
-  : "https://ht-bulk-schedule-syncs.vercel.app/api/update-syncs";
+const DEFAULT_PROXY_URL = "https://ht-bulk-schedule-syncs.vercel.app/api/update-syncs";
 
 if (useLocalProxy) {
   keyHint.textContent =
     "Your key is sent only to this local server and forwarded to Hightouch. It is never stored or logged.";
 } else {
+  proxySection.hidden = false;
+  proxyUrlInput.value = DEFAULT_PROXY_URL;
   keyHint.textContent =
-    "Your key is forwarded through a proxy to Hightouch. It is never stored or logged.";
+    "Your key is forwarded through the proxy URL below to Hightouch. It is never stored or logged.";
+}
+
+function getProxyUrl() {
+  if (useLocalProxy) return "/api/update-syncs";
+  const url = proxyUrlInput.value.trim().replace(/\/$/, "");
+  if (!url) throw new Error("Please enter a proxy URL.");
+  return url;
 }
 
 toggleKeyBtn.addEventListener("click", () => {
@@ -50,7 +59,7 @@ function parseSyncIds(text) {
 }
 
 async function updateSyncsViaProxy(syncIds, schedule, apiKey) {
-  const response = await fetch(PROXY_URL, {
+  const response = await fetch(getProxyUrl(), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
