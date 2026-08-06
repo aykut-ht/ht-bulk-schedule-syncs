@@ -1,12 +1,11 @@
 const express = require("express");
-const path = require("path");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const HIGHTOUCH_BASE = "https://api.hightouch.com/api/v1";
 
 app.use(express.json({ limit: "1mb" }));
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(__dirname));
 
 function buildRequestLog(syncId, schedule) {
   return {
